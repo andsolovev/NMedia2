@@ -1,11 +1,13 @@
 package ru.netology.nmedia.adapter
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import android.widget.PopupMenu
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.dto.Post
@@ -71,6 +73,20 @@ class PostViewHolder(
 
             share.setOnClickListener {
                 onInteractionListener.onShare(post)
+            }
+
+            Glide.with(binding.avatar)
+                .load("http://10.0.2.2:9999/avatars/${post.authorAvatar}")
+                .timeout(6_000)
+                .circleCrop()
+                .into(binding.avatar)
+
+            if (post.attachment != null) {
+                Glide.with(binding.attachment)
+                    .load("http://10.0.2.2:9999/images/${post.attachment.url}")
+                    .timeout(6_000)
+                    .into(binding.attachment)
+                attachment.visibility = View.VISIBLE
             }
         }
     }
