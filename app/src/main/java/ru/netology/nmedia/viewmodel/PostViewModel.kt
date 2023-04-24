@@ -20,7 +20,6 @@ private val empty = Post(
 )
 
 class PostViewModel(application: Application) : AndroidViewModel(application) {
-    // упрощённый вариант
     private val repository: PostRepository = PostRepositoryImpl()
     private val _data = MutableLiveData(FeedModel())
     val data: LiveData<FeedModel>
@@ -29,6 +28,14 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
+    private val _error = SingleLiveEvent<Throwable>()
+    private val _errorDelete = SingleLiveEvent<Throwable>()
+    val error: LiveData<Throwable>
+        get() = _error
+    val errorDelete: LiveData<Throwable>
+        get() = _errorDelete
+    val errorLike: LiveData<Throwable>
+        get() = _error
 
     init {
         loadPosts()
@@ -36,26 +43,28 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
     fun loadPosts() {
         _data.value = FeedModel(loading = true)
-        repository.getAll(object : PostsCallback<List<Post>> {
+        repository.getAll(object : PostRepository.PostsCallback<List<Post>> {
             override fun onSuccess(data: List<Post>) {
                 _data.postValue(FeedModel(posts = data, empty = data.isEmpty()))
             }
 
             override fun onError(e: Exception) {
                 _data.postValue(FeedModel(error = true))
+                _error.value = Exception("Error loading posts")
             }
         })
     }
 
     fun save() {
         edited.value?.let {
-            repository.save(it, object : PostsCallback<Post> {
+            repository.save(it, object : PostRepository.PostsCallback<Post> {
                 override fun onSuccess(data: Post) {
                     _postCreated.postValue(Unit)
                 }
 
                 override fun onError(e: Exception) {
                     _data.postValue(FeedModel(error = true))
+                    _error.value = Exception("An error occurred. Please, try again later!")
                 }
 
             })
@@ -76,7 +85,7 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun likeById(id: Long) {
-        repository.likeById(id, object : PostsCallback<Post> {
+        repository.likeById(id, object : PostRepository.PostsCallback<Post> {
             override fun onSuccess(data: Post) {
                 _data.postValue(
                     _data.value?.copy(posts = _data.value?.posts.orEmpty()
@@ -89,13 +98,13 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
             override fun onError(e: Exception) {
                 _data.postValue(FeedModel(error = true))
+                _error.value = Exception("Unable to like post. Please, try again later!")
             }
-
         })
     }
 
     fun unlikeById(id: Long) {
-        repository.unlikeById(id, object : PostsCallback<Post> {
+        repository.unlikeById(id, object : PostRepository.PostsCallback<Post> {
             override fun onSuccess(data: Post) {
                 _data.postValue(
                     _data.value?.copy(posts = _data.value?.posts.orEmpty()
@@ -108,15 +117,17 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
 
             override fun onError(e: Exception) {
                 _data.postValue(FeedModel(error = true))
+                _error.value = Exception("Unable to like post. Please, try again later!")
             }
 
         })
     }
 
     fun removeById(id: Long) {
-        val old = _data.value?.posts.orEmpty()
-        repository.removeById(id, object : PostsCallback<Long> {
-            override fun onSuccess(data: Long) {
+
+        repository.removeById(id, object : PostRepository.PostsCallback<Unit> {
+            val old = _data.value?.posts.orEmpty()
+            override fun onSuccess(data: Unit) {
                 _data.postValue(
                     _data.value?.copy(posts = _data.value?.posts.orEmpty()
                         .filter { it.id != id }
@@ -125,7 +136,9 @@ class PostViewModel(application: Application) : AndroidViewModel(application) {
             }
 
             override fun onError(e: Exception) {
+                _errorDelete.value = Exception("Unable to delete post. Please, try again later!")
                 _data.postValue(_data.value?.copy(posts = old))
+
             }
 
         })
