@@ -5,11 +5,14 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
+import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
 import ru.netology.nmedia.databinding.FragmentFeedBinding
@@ -30,6 +33,11 @@ class FeedFragment : Fragment() {
         val adapter = PostsAdapter(object : OnInteractionListener {
             override fun onEdit(post: Post) {
                 viewModel.edit(post)
+                findNavController().navigate(R.id.action_feedFragment_to_newPostFragment,
+                    Bundle().apply {
+                        textArg = post.content
+                    }
+                )
             }
 
             override fun onLike(post: Post) {
@@ -75,6 +83,18 @@ class FeedFragment : Fragment() {
         binding.swipetorefresh.setOnRefreshListener{
             viewModel.loadPosts()
             binding.swipetorefresh.isRefreshing = false
+        }
+
+        viewModel.error.observe(viewLifecycleOwner) {
+            Snackbar.make(requireView(), it.message as CharSequence, Snackbar.LENGTH_LONG).show()
+        }
+
+        viewModel.errorLike.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
+        }
+
+        viewModel.errorDelete.observe(viewLifecycleOwner) {
+            Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
         }
 
         return binding.root
