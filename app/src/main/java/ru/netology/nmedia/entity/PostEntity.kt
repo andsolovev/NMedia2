@@ -20,12 +20,21 @@ data class PostEntity(
     @Embedded
     val attachment: AttachmentEntity?
 ) {
-    fun toDto() = Post(id, author, authorAvatar, content, published, likedByMe, likes, attachment?.toDto())
+    fun toDto() =
+        Post(id, author, authorAvatar, content, published, likedByMe, likes, attachment?.toDto())
 
     companion object {
         fun fromDto(dto: Post) =
-            PostEntity(dto.id, dto.author, dto.authorAvatar, dto.content, dto.published, dto.likedByMe, dto.likes, AttachmentEntity.fromDto(dto.attachment))
-
+            PostEntity(
+                dto.id,
+                dto.author,
+                dto.authorAvatar,
+                dto.content,
+                dto.published,
+                dto.likedByMe,
+                dto.likes,
+                AttachmentEntity.fromDto(dto.attachment)
+            )
     }
 }
 
@@ -43,4 +52,7 @@ data class AttachmentEntity(
         }
     }
 }
+
+fun List<PostEntity>.toDto(): List<Post> = map(PostEntity::toDto)
+fun List<Post>.toEntity(): List<PostEntity> = map(PostEntity::fromDto)
 

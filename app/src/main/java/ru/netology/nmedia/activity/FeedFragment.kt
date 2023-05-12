@@ -65,35 +65,35 @@ class FeedFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
+        viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
-            binding.errorGroup.isVisible = state.error
-            binding.emptyText.isVisible = state.empty
+            binding.swipetorefresh.isRefreshing = state.refreshing
+            if (state.error) {
+                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_LONG)
+                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
+                    .show()
+            }
         }
 
-        binding.retryButton.setOnClickListener {
-            viewModel.loadPosts()
+        viewModel.data.observe(viewLifecycleOwner) { state ->
+            adapter.submitList(state.posts)
+            binding.emptyText.isVisible = state.empty
         }
 
         binding.fab.setOnClickListener {
             findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
         }
 
-        binding.swipetorefresh.setOnRefreshListener{
-            viewModel.loadPosts()
+        binding.swipetorefresh.setOnRefreshListener {
+            viewModel.refreshPosts()
             binding.swipetorefresh.isRefreshing = false
         }
 
-        viewModel.error.observe(viewLifecycleOwner) {
+        viewModel.errorMain.observe(viewLifecycleOwner) {
             Snackbar.make(requireView(), it.message as CharSequence, Snackbar.LENGTH_LONG).show()
         }
 
-        viewModel.errorLike.observe(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
-        }
-
-        viewModel.errorDelete.observe(viewLifecycleOwner) {
+        viewModel.errorAdditional.observe(viewLifecycleOwner) {
             Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
         }
 
