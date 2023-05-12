@@ -45,7 +45,7 @@ class NewPostFragment : Fragment() {
             findNavController().navigateUp()
         }
 
-        viewModel.error.observe(viewLifecycleOwner) {
+        viewModel.errorMain.observe(viewLifecycleOwner) {
             Snackbar.make(requireView(), it.message as CharSequence, Snackbar.LENGTH_LONG).show()
         }
 
