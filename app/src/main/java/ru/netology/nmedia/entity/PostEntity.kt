@@ -18,7 +18,8 @@ data class PostEntity(
     val likedByMe: Boolean,
     val likes: Int = 0,
     @Embedded
-    val attachment: AttachmentEntity?
+    val attachment: AttachmentEntity?,
+    val visible: Boolean = true,
 ) {
     fun toDto() =
         Post(id, author, authorAvatar, content, published, likedByMe, likes, attachment?.toDto())
@@ -33,7 +34,8 @@ data class PostEntity(
                 dto.published,
                 dto.likedByMe,
                 dto.likes,
-                AttachmentEntity.fromDto(dto.attachment)
+                AttachmentEntity.fromDto(dto.attachment),
+//                hidden = hidden
             )
     }
 }
@@ -54,5 +56,6 @@ data class AttachmentEntity(
 }
 
 fun List<PostEntity>.toDto(): List<Post> = map(PostEntity::toDto)
-fun List<Post>.toEntity(): List<PostEntity> = map(PostEntity::fromDto)
+fun List<Post>.toEntity(visible: Boolean = true) = map { PostEntity.fromDto(it) }
+    .map { it.copy(visible = visible) }
 
