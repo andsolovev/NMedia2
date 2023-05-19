@@ -5,12 +5,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
-import com.google.android.material.snackbar.Snackbar
+import androidx.recyclerview.widget.RecyclerView
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -65,14 +64,18 @@ class FeedFragment : Fragment() {
             }
         })
         binding.list.adapter = adapter
+
+        adapter.registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                if (positionStart == 0) {
+                    binding.list.smoothScrollToPosition(0)
+                }
+            }
+        })
+
         viewModel.dataState.observe(viewLifecycleOwner) { state ->
             binding.progress.isVisible = state.loading
             binding.swipetorefresh.isRefreshing = state.refreshing
-            if (state.error) {
-                Snackbar.make(binding.root, R.string.error_loading, Snackbar.LENGTH_LONG)
-                    .setAction(R.string.retry_loading) { viewModel.loadPosts() }
-                    .show()
-            }
         }
 
         viewModel.data.observe(viewLifecycleOwner) { state ->
@@ -89,12 +92,15 @@ class FeedFragment : Fragment() {
             binding.swipetorefresh.isRefreshing = false
         }
 
-        viewModel.errorMain.observe(viewLifecycleOwner) {
-            Snackbar.make(requireView(), it.message as CharSequence, Snackbar.LENGTH_LONG).show()
-        }
-
-        viewModel.errorAdditional.observe(viewLifecycleOwner) {
-            Toast.makeText(requireContext(), it.message, Toast.LENGTH_LONG).show()
+        viewModel.newerCount.observe(viewLifecycleOwner) { it ->
+            println("NEWER COUNT: $it")
+            if (it > 0) {
+                binding.newerButton.visibility = View.VISIBLE
+                binding.newerButton.setOnClickListener {
+                    viewModel.showAll()
+                    binding.newerButton.visibility = View.GONE
+                }
+            }
         }
 
         return binding.root
