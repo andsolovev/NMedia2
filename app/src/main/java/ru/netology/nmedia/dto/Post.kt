@@ -8,12 +8,12 @@ data class Post(
     val published: String,
     val likedByMe: Boolean,
     val likes: Int = 0,
-    val attachment: Attachment?
+    val attachment: Attachment?,
 )
 
 data class Attachment(
     val url: String,
-    val description: String?,
+    val description: String,
     val type: AttachmentType,
 )
 

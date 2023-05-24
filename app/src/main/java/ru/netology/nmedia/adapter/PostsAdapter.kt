@@ -18,6 +18,7 @@ interface OnInteractionListener {
     fun onEdit(post: Post) {}
     fun onRemove(post: Post) {}
     fun onShare(post: Post) {}
+    fun onAttachment(post: Post) {}
 }
 
 class PostsAdapter(
@@ -84,10 +85,14 @@ class PostViewHolder(
 
             if (post.attachment != null) {
                 Glide.with(binding.attachment)
-                    .load("${BuildConfig.BASE_URL}/images/${post.attachment.url}")
+                    .load("${BuildConfig.BASE_URL}/media/${post.attachment.url}")
                     .timeout(6_000)
                     .into(binding.attachment)
                 attachment.visibility = View.VISIBLE
+            }
+
+            binding.attachment.setOnClickListener {
+                onInteractionListener.onAttachment(post)
             }
         }
     }

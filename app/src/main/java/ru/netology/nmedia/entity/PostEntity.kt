@@ -18,7 +18,7 @@ data class PostEntity(
     val likedByMe: Boolean,
     val likes: Int = 0,
     @Embedded
-    val attachment: AttachmentEntity?,
+    var attachment: AttachmentEntity?,
     val visible: Boolean = true,
 ) {
     fun toDto() =
@@ -42,15 +42,15 @@ data class PostEntity(
 
 @Entity
 data class AttachmentEntity(
-    var url: String,
-    var description: String?,
-    var type: AttachmentType,
+    val url: String,
+    val description: String,
+    val type: AttachmentType
 ) {
     fun toDto() = Attachment(url, description, type)
 
     companion object {
-        fun fromDto(dto: Attachment?) = dto?.let {
-            AttachmentEntity(it.url, it.description, it.type)
+        fun fromDto(dto: Attachment?): AttachmentEntity? {
+            return if (dto != null) AttachmentEntity(dto.url, dto.description, dto.type) else null
         }
     }
 }
