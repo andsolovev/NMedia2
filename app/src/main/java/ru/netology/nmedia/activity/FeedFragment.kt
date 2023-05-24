@@ -62,6 +62,14 @@ class FeedFragment : Fragment() {
                     Intent.createChooser(intent, getString(R.string.chooser_share_post))
                 startActivity(shareIntent)
             }
+
+            override fun onAttachment(post: Post) {
+                findNavController().navigate(R.id.action_feedFragment_to_attachmentFragment,
+                    Bundle().apply {
+                        textArg = post.attachment?.url
+                    }
+                )
+            }
         })
         binding.list.adapter = adapter
 
