@@ -28,4 +28,24 @@
     <string name="description_take_photo">Сделать фото</string>
     <string name="description_photo">Описание фото</string>
     <string name="remove">Удалить</string>
+    <string name="signin">Sign in</string>
+    <string name="signup">Sign up</string>
+    <string name="logout">Logout</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
+    <string name="sign_in">sign in</string>
+    <string name="or_create_an_account">Or create an account</string>
+    <string name="name">name</string>
+    <string name="password_conrirmation">password conrirmation</string>
+    <string name="sign_up">sign_up</string>
+    <string name="fill_in_the_following_fields_to_create_an_account">Fill in the following fields to create an account</string>
+    <string name="add_avatar_if_you_want">Add avatar, if you want:</string>
+    <string name="sign_in_to_continue">Авторизируйтесь, чтобы продолжить</string>
+    <string name="incorrect_login_password">Неправильный логин/пароль</string>
+    <string name="enter_login_and_password">Введите пожалуйста логин и пароль</string>
+    <string name="you_are_logged_in">Вы успешно авторизированы</string>
+    <string name="please_fill_in_all_fields">Заполните пожалуйста все поля</string>
+    <string name="passwords_do_not_match">Пароли не совпадают!</string>
+    <string name="you_have_successfully_registered">Вы успешно зарегистрированы!</string>
+    <string name="avatar">avatar</string>
 </resources>
