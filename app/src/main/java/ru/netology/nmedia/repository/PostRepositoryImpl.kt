@@ -45,7 +45,7 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
 
     override fun getNewerCount(id: Long): Flow<Int> = flow {
         while (true) {
-            delay(10_000L)
+            delay(100_000L)
             try {
                 val response = PostApi.service.getNewer(id)
                 if (!response.isSuccessful) {
@@ -113,7 +113,8 @@ class PostRepositoryImpl(private val dao: PostDao) : PostRepository {
         try {
             val media = upload(upload)
             // TODO: add support for other types
-            val postWithAttachment = post.copy(attachment = Attachment(media.id, "attachment", AttachmentType.IMAGE))
+            val postWithAttachment =
+                post.copy(attachment = Attachment(media.id, "attachment", AttachmentType.IMAGE))
             save(postWithAttachment)
         } catch (e: AppError) {
             throw e

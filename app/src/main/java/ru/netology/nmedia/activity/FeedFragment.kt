@@ -2,25 +2,29 @@ package ru.netology.nmedia.activity
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
 import ru.netology.nmedia.adapter.PostsAdapter
+import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
 
 class FeedFragment : Fragment() {
 
     private val viewModel: PostViewModel by activityViewModels()
+    val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -40,10 +44,15 @@ class FeedFragment : Fragment() {
             }
 
             override fun onLike(post: Post) {
-                if (post.likedByMe) {
-                    viewModel.unlikeById(post.id)
-                } else {
-                    viewModel.likeById(post.id)
+                when (authViewModel.authorized) {
+                    true -> {
+                        if (post.likedByMe) {
+                            viewModel.unlikeById(post.id)
+                        } else {
+                            viewModel.likeById(post.id)
+                        }
+                    }
+                    false -> signInSnack()
                 }
             }
 
@@ -91,9 +100,21 @@ class FeedFragment : Fragment() {
             binding.emptyText.isVisible = state.empty
         }
 
-        binding.fab.setOnClickListener {
-            findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
-        }
+//        binding.fab.setOnClickListener {
+//            when (authViewModel.authorized) {
+//                true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+//                false -> unauthorizedAccessAttempt()
+//            }
+//        }
+
+//        authViewModel.data.observe(viewLifecycleOwner) {
+//            binding.fab.setOnClickListener {
+//                when (authViewModel.authorized) {
+//                    true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+//                    false -> unauthorizedAccessAttempt()
+//                }
+//            }
+//        }
 
         binding.swipetorefresh.setOnRefreshListener {
             viewModel.refreshPosts()
@@ -111,6 +132,63 @@ class FeedFragment : Fragment() {
             }
         }
 
+        authViewModel.data.observe(viewLifecycleOwner) {
+            binding.fab.setOnClickListener {
+                when (authViewModel.authorized) {
+                    true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
+                    false -> signInSnack()
+                }
+            }
+        }
+
+        var menuProvider: MenuProvider? = null
+
+        authViewModel.data.observe(viewLifecycleOwner) {
+            menuProvider?.let { requireActivity()::removeMenuProvider }
+        }
+        requireActivity().addMenuProvider(object : MenuProvider {
+            override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
+                menuInflater.inflate(R.menu.menu_auth, menu)
+                menu.setGroupVisible(R.id.authorized, authViewModel.authorized)
+                menu.setGroupVisible(R.id.unauthorized, !authViewModel.authorized)
+            }
+
+            override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
+                when (menuItem.itemId) {
+                    R.id.logout -> {
+                        AppAuth.getInstance().clearAuth()
+                        true
+                    }
+
+                    R.id.signIn -> {
+                        findNavController().navigate(R.id.action_feedFragment_to_signInFragment)
+                        true
+                    }
+
+                    R.id.signUp -> {
+                        findNavController().navigate(R.id.action_feedFragment_to_signUpFragment)
+                        true
+                    }
+                    else -> false
+                }
+        }.apply {
+            menuProvider = this
+        }, viewLifecycleOwner)
+
+        authViewModel.data.observe(viewLifecycleOwner) {
+            requireActivity().invalidateOptionsMenu()
+        }
         return binding.root
     }
+
+    private fun signInSnack() {
+        Snackbar.make(requireView(), "Sign in to continue", 7000)
+            .setAction(
+                R.string.sign_in,
+                View.OnClickListener { findNavController().navigate(R.id.action_feedFragment_to_signInFragment) })
+            .show()
+    }
 }
+
+
+

@@ -27,4 +27,24 @@
     <string name="remove">remove</string>
     <string name="description_select_photo">description_select_photo</string>
     <string name="description_take_photo">description_take_photo</string>
+    <string name="signin">Sign in</string>
+    <string name="signup">Sign up</string>
+    <string name="logout">Logout</string>
+    <string name="login">login</string>
+    <string name="password">password</string>
+    <string name="sign_in">sign in</string>
+    <string name="or_create_an_account">Or create an account</string>
+    <string name="name">name</string>
+    <string name="password_conrirmation">password conrirmation</string>
+    <string name="sign_up">sign_up</string>
+    <string name="fill_in_the_following_fields_to_create_an_account">Please fill in the following fields to create an account:</string>
+    <string name="add_avatar_if_you_want">Add avatar, if you want:</string>
+    <string name="sign_in_to_continue">Sign in to continue</string>
+    <string name="incorrect_login_password">Incorrect login/password</string>
+    <string name="enter_login_and_password">Enter login and password</string>
+    <string name="you_are_logged_in">You are logged in!</string>
+    <string name="please_fill_in_all_fields">Please fill in all fields!</string>
+    <string name="passwords_do_not_match">Passwords do not match!</string>
+    <string name="you_have_successfully_registered">You have successfully registered!</string>
+    <string name="avatar">avatar</string>
 </resources>
