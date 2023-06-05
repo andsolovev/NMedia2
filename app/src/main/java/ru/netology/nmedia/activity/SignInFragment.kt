@@ -52,7 +52,7 @@ class SignInFragment : Fragment() {
         viewModel.data.observe(viewLifecycleOwner) {
             if (it != null) {
                 Toast.makeText(context, R.string.you_are_logged_in, Toast.LENGTH_LONG).show()
-                findNavController().navigate(R.id.action_signInFragment_to_feedFragment)
+                findNavController().navigateUp()
             }
         }
 

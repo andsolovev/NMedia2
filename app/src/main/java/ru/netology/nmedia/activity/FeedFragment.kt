@@ -182,7 +182,7 @@ class FeedFragment : Fragment() {
     }
 
     private fun signInSnack() {
-        Snackbar.make(requireView(), "Sign in to continue", 7000)
+        Snackbar.make(requireView(), R.string.sign_in_to_continue, 7000)
             .setAction(
                 R.string.sign_in,
                 View.OnClickListener { findNavController().navigate(R.id.action_feedFragment_to_signInFragment) })

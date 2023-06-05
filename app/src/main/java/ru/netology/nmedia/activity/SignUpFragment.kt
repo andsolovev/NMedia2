@@ -115,7 +115,7 @@ class SignUpFragment : Fragment() {
                     R.string.you_have_successfully_registered,
                     Toast.LENGTH_LONG
                 ).show()
-                findNavController().navigate(R.id.action_signUpFragment_to_feedFragment)
+                findNavController().navigateUp()
             }
         }
 
