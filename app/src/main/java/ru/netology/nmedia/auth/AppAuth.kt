@@ -3,13 +3,20 @@ package ru.netology.nmedia.auth
 import android.content.Context
 import androidx.core.content.edit
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import ru.netology.nmedia.api.PostApi
+import ru.netology.nmedia.api.Api
+import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
@@ -45,6 +52,7 @@ class AppAuth private constructor(context: Context) {
         } else {
             MutableStateFlow(Token(id, token))
         }
+        sendPushToken()
     }
 
     val data = _data.asStateFlow()
@@ -56,17 +64,19 @@ class AppAuth private constructor(context: Context) {
             putString(TOKEN_KEY, token)
         }
         _data.value = Token(id, token)
+        sendPushToken()
     }
 
     @Synchronized
     fun clearAuth() {
         prefs.edit { clear() }
         _data.value = null
+        sendPushToken()
     }
 
     suspend fun update(login: String, password: String) {
         try {
-            val response = PostApi.service.updateUser(login, password)
+            val response = Api.service.updateUser(login, password)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -84,7 +94,7 @@ class AppAuth private constructor(context: Context) {
 
     suspend fun register(login: String, password: String, name: String) {
         try {
-            val response = PostApi.service.registerUser(login, password, name)
+            val response = Api.service.registerUser(login, password, name)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -106,7 +116,7 @@ class AppAuth private constructor(context: Context) {
                 file.name,
                 file.asRequestBody()
             )
-            val response = PostApi.service.registerWithPhoto(
+            val response = Api.service.registerWithPhoto(
                 login.toRequestBody("text/plain".toMediaType()),
                 password.toRequestBody("text/plain".toMediaType()),
                 name.toRequestBody("text/plain".toMediaType()),
@@ -124,6 +134,17 @@ class AppAuth private constructor(context: Context) {
             throw e
         } catch (e: Exception) {
             throw UnknownError
+        }
+    }
+
+    fun sendPushToken(token: String? = null) {
+        CoroutineScope(Dispatchers.Default).launch {
+            try {
+                val pushToken = PushToken(token ?: Firebase.messaging.token.await())
+                Api.service.save(pushToken)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

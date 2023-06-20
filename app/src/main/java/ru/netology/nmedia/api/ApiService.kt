@@ -14,6 +14,7 @@ import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.auth.Token
 import ru.netology.nmedia.dto.Media
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.PushToken
 
 private const val BASE_URL = "${BuildConfig.BASE_URL}/api/"
 
@@ -65,6 +66,9 @@ interface PostApiService {
     @POST("media")
     suspend fun upload(@Part media: MultipartBody.Part): Response<Media>
 
+    @POST("users/push-tokens")
+    suspend fun save(@Body pushToken: PushToken): Response<Unit>
+
     @FormUrlEncoded
     @POST("users/authentication")
     suspend fun updateUser(
@@ -90,7 +94,7 @@ interface PostApiService {
     ): Response<Token>
 }
 
-object PostApi {
+object Api {
     val service: PostApiService by lazy {
         retrofit.create()
     }
