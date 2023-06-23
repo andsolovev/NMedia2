@@ -13,6 +13,7 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import com.google.gson.Gson
 import ru.netology.nmedia.R
+import ru.netology.nmedia.auth.AppAuth
 import kotlin.random.Random
 
 
@@ -37,16 +38,16 @@ class FCMService : FirebaseMessagingService() {
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
-
         message.data[action]?.let {
             when (Action.valueOf(it)) {
                 Action.LIKE -> handleLike(gson.fromJson(message.data[content], Like::class.java))
             }
         }
+        handlePushMessage(AppAuth.getInstance().data.value?.id, gson.fromJson(message.data[content], PushMessage::class.java))
     }
 
     override fun onNewToken(token: String) {
-        println(token)
+        AppAuth.getInstance().sendPushToken(token)
     }
 
     private fun handleLike(content: Like) {
@@ -61,8 +62,23 @@ class FCMService : FirebaseMessagingService() {
             )
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
-
         notify(notification)
+    }
+
+    private fun handlePushMessage(userId: Long?, message: PushMessage) {
+        val notification = NotificationCompat.Builder(this, channelId)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(message.content)
+            .setContentText(message.content)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
+        when {
+            message.recipientId == userId || message.recipientId == null -> NotificationManagerCompat.from(this)
+                .notify(Random.nextInt(100_000), notification)
+
+            message.recipientId == 0L || message.recipientId != 0L  -> AppAuth.getInstance().sendPushToken()
+        }
     }
 
     private fun notify(notification: Notification) {
@@ -87,5 +103,10 @@ data class Like(
     val userName: String,
     val postId: Long,
     val postAuthor: String,
+)
+
+data class PushMessage(
+    val recipientId: Long?,
+    val content: String,
 )
 
