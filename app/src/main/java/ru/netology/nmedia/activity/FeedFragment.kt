@@ -6,11 +6,11 @@ import android.view.*
 import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
+import dagger.hilt.android.AndroidEntryPoint
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -20,10 +20,15 @@ import ru.netology.nmedia.databinding.FragmentFeedBinding
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.viewmodel.AuthViewModel
 import ru.netology.nmedia.viewmodel.PostViewModel
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class FeedFragment : Fragment() {
 
-    private val viewModel: PostViewModel by activityViewModels()
+    @Inject
+    lateinit var appAuth: AppAuth
+
+    private val viewModel: PostViewModel by viewModels()
     val authViewModel: AuthViewModel by viewModels()
 
     override fun onCreateView(
@@ -100,22 +105,6 @@ class FeedFragment : Fragment() {
             binding.emptyText.isVisible = state.empty
         }
 
-//        binding.fab.setOnClickListener {
-//            when (authViewModel.authorized) {
-//                true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
-//                false -> unauthorizedAccessAttempt()
-//            }
-//        }
-
-//        authViewModel.data.observe(viewLifecycleOwner) {
-//            binding.fab.setOnClickListener {
-//                when (authViewModel.authorized) {
-//                    true -> findNavController().navigate(R.id.action_feedFragment_to_newPostFragment)
-//                    false -> unauthorizedAccessAttempt()
-//                }
-//            }
-//        }
-
         binding.swipetorefresh.setOnRefreshListener {
             viewModel.refreshPosts()
             binding.swipetorefresh.isRefreshing = false
@@ -156,7 +145,7 @@ class FeedFragment : Fragment() {
             override fun onMenuItemSelected(menuItem: MenuItem): Boolean =
                 when (menuItem.itemId) {
                     R.id.logout -> {
-                        AppAuth.getInstance().clearAuth()
+                        appAuth.clearAuth()
                         true
                     }
 
@@ -184,8 +173,8 @@ class FeedFragment : Fragment() {
     private fun signInSnack() {
         Snackbar.make(requireView(), R.string.sign_in_to_continue, 7000)
             .setAction(
-                R.string.sign_in,
-                View.OnClickListener { findNavController().navigate(R.id.action_feedFragment_to_signInFragment) })
+                R.string.sign_in
+            ) { findNavController().navigate(R.id.action_feedFragment_to_signInFragment) }
             .show()
     }
 }

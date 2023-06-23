@@ -5,6 +5,11 @@ import androidx.core.content.edit
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.android.qualifiers.ApplicationContext
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,32 +20,27 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
-import ru.netology.nmedia.api.Api
+import ru.netology.nmedia.api.ApiService
 import ru.netology.nmedia.dto.PushToken
 import ru.netology.nmedia.error.ApiError
 import ru.netology.nmedia.error.NetworkError
 import ru.netology.nmedia.error.UnknownError
 import java.io.File
 import java.io.IOException
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class AppAuth private constructor(context: Context) {
-    companion object {
-        private const val TOKEN_KEY = "TOKEN_KEY"
-        private const val ID_KEY = "ID_KEY"
-
-        private var INSTANCE: AppAuth? = null
-
-        fun getInstance(): AppAuth = requireNotNull(INSTANCE) {
-            "init() must be called before getInstance()"
-        }
-
-        fun init(context: Context) {
-            INSTANCE = AppAuth(context)
-        }
-    }
+@Singleton
+class AppAuth @Inject constructor(
+    @ApplicationContext
+    private val context: Context
+) {
 
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
     private val _data: MutableStateFlow<Token?>
+    private val TOKEN_KEY = "TOKEN_KEY"
+    private val ID_KEY = "ID_KEY"
+    val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
 
     init {
         val token = prefs.getString(TOKEN_KEY, null)
@@ -76,7 +76,8 @@ class AppAuth private constructor(context: Context) {
 
     suspend fun update(login: String, password: String) {
         try {
-            val response = Api.service.updateUser(login, password)
+//            val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
+            val response = entryPoint.getApiService().updateUser(login, password)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -94,7 +95,7 @@ class AppAuth private constructor(context: Context) {
 
     suspend fun register(login: String, password: String, name: String) {
         try {
-            val response = Api.service.registerUser(login, password, name)
+            val response = entryPoint.getApiService().registerUser(login, password, name)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
             }
@@ -116,7 +117,7 @@ class AppAuth private constructor(context: Context) {
                 file.name,
                 file.asRequestBody()
             )
-            val response = Api.service.registerWithPhoto(
+            val response = entryPoint.getApiService().registerWithPhoto(
                 login.toRequestBody("text/plain".toMediaType()),
                 password.toRequestBody("text/plain".toMediaType()),
                 name.toRequestBody("text/plain".toMediaType()),
@@ -141,11 +142,17 @@ class AppAuth private constructor(context: Context) {
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val pushToken = PushToken(token ?: Firebase.messaging.token.await())
-                Api.service.save(pushToken)
+//                val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
+                entryPoint.getApiService().save(pushToken)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
+    }
+    @InstallIn(SingletonComponent::class)
+    @EntryPoint
+    interface AppAuthEntryPoint {
+        fun getApiService() : ApiService
     }
 }
 
