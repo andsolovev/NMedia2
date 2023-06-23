@@ -44,16 +44,16 @@
         android:focusable="true"
         app:srcCompat="@drawable/ic_add_24dp" />
 
-    <Button
-        android:id="@+id/newerButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|center"
-        android:layout_margin="@dimen/fab_margin"
-        android:backgroundTint="@color/colorAccent"
-        android:text="@string/newerPosts"
-        android:visibility="gone"
-        app:icon="@drawable/ic_baseline_keyboard_double_arrow_up_24" />
+<!--    <Button-->
+<!--        android:id="@+id/newerButton"-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:layout_gravity="top|center"-->
+<!--        android:layout_margin="@dimen/fab_margin"-->
+<!--        android:backgroundTint="@color/colorAccent"-->
+<!--        android:text="@string/newerPosts"-->
+<!--        android:visibility="gone"-->
+<!--        app:icon="@drawable/ic_baseline_keyboard_double_arrow_up_24" />-->
 
     <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
         android:id="@+id/swipetorefresh"

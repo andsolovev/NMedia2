@@ -7,10 +7,13 @@ import androidx.core.view.MenuProvider
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import ru.netology.nmedia.R
 import ru.netology.nmedia.activity.NewPostFragment.Companion.textArg
 import ru.netology.nmedia.adapter.OnInteractionListener
@@ -100,26 +103,44 @@ class FeedFragment : Fragment() {
             binding.swipetorefresh.isRefreshing = state.refreshing
         }
 
-        viewModel.data.observe(viewLifecycleOwner) { state ->
-            adapter.submitList(state.posts)
-            binding.emptyText.isVisible = state.empty
+//        viewModel.data.observe(viewLifecycleOwner) { state ->
+//            adapter.submitList(state.posts)
+//            binding.emptyText.isVisible = state.empty
+//        }
+
+        lifecycleScope.launchWhenCreated {
+            viewModel.data.collectLatest {
+                adapter.submitData(it)
+            }
+        }
+
+        lifecycleScope.launchWhenCreated {
+            adapter.loadStateFlow.collectLatest {
+                it.refresh is LoadState.Loading
+                        || it.append is LoadState.Loading
+                        || it.prepend is LoadState.Loading
+            }
+        }
+
+        authViewModel.data.observe(viewLifecycleOwner) {
+            adapter.refresh()
         }
 
         binding.swipetorefresh.setOnRefreshListener {
-            viewModel.refreshPosts()
+            adapter.refresh()
             binding.swipetorefresh.isRefreshing = false
         }
 
-        viewModel.newerCount.observe(viewLifecycleOwner) { it ->
-            println("NEWER COUNT: $it")
-            if (it > 0) {
-                binding.newerButton.visibility = View.VISIBLE
-                binding.newerButton.setOnClickListener {
-                    viewModel.showAll()
-                    binding.newerButton.visibility = View.GONE
-                }
-            }
-        }
+//        viewModel.newerCount.observe(viewLifecycleOwner) { it ->
+//            println("NEWER COUNT: $it")
+//            if (it > 0) {
+//                binding.newerButton.visibility = View.VISIBLE
+//                binding.newerButton.setOnClickListener {
+//                    viewModel.showAll()
+//                    binding.newerButton.visibility = View.GONE
+//                }
+//            }
+//        }
 
         authViewModel.data.observe(viewLifecycleOwner) {
             binding.fab.setOnClickListener {
