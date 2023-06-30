@@ -5,7 +5,6 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -62,11 +61,6 @@ class PostViewModel @Inject constructor(
     private val _postCreated = SingleLiveEvent<Unit>()
     val postCreated: LiveData<Unit>
         get() = _postCreated
-//    val newerCount: LiveData<Int> = data.switchMap {
-//        repository.getNewerCount(it.posts.firstOrNull()?.id ?: 0L)
-//            .catch { e -> e.printStackTrace() }
-//            .asLiveData(Dispatchers.Default)
-//    }
 
     init {
         loadPosts()
@@ -75,26 +69,6 @@ class PostViewModel @Inject constructor(
     fun loadPosts() = viewModelScope.launch {
         _dataState.value = FeedModelState(loading = true)
         try {
-            repository.getAll()
-            _dataState.value = FeedModelState()
-        } catch (e: Exception) {
-            _dataState.value = FeedModelState(error = true)
-        }
-    }
-
-    fun showAll() = viewModelScope.launch(Dispatchers.IO) {
-        _dataState.postValue(FeedModelState(loading = true))
-        try {
-            repository.showAll()
-            _dataState.postValue(FeedModelState())
-        } catch (e: Exception) {
-            _dataState.postValue(FeedModelState(error = true))
-        }
-    }
-
-    fun refreshPosts() = viewModelScope.launch {
-        try {
-            _dataState.value = FeedModelState(refreshing = true)
             repository.getAll()
             _dataState.value = FeedModelState()
         } catch (e: Exception) {

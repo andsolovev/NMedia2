@@ -103,11 +103,6 @@ class FeedFragment : Fragment() {
             binding.swipetorefresh.isRefreshing = state.refreshing
         }
 
-//        viewModel.data.observe(viewLifecycleOwner) { state ->
-//            adapter.submitList(state.posts)
-//            binding.emptyText.isVisible = state.empty
-//        }
-
         lifecycleScope.launchWhenCreated {
             viewModel.data.collectLatest {
                 adapter.submitData(it)
@@ -130,17 +125,6 @@ class FeedFragment : Fragment() {
             adapter.refresh()
             binding.swipetorefresh.isRefreshing = false
         }
-
-//        viewModel.newerCount.observe(viewLifecycleOwner) { it ->
-//            println("NEWER COUNT: $it")
-//            if (it > 0) {
-//                binding.newerButton.visibility = View.VISIBLE
-//                binding.newerButton.setOnClickListener {
-//                    viewModel.showAll()
-//                    binding.newerButton.visibility = View.GONE
-//                }
-//            }
-//        }
 
         authViewModel.data.observe(viewLifecycleOwner) {
             binding.fab.setOnClickListener {
