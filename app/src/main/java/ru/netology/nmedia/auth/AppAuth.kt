@@ -13,6 +13,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -55,7 +56,7 @@ class AppAuth @Inject constructor(
         sendPushToken()
     }
 
-    val data = _data.asStateFlow()
+    val data: StateFlow<Token?> = _data.asStateFlow()
 
     @Synchronized
     fun setToken(id: Long, token: String) {
