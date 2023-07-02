@@ -77,7 +77,6 @@ class AppAuth @Inject constructor(
 
     suspend fun update(login: String, password: String) {
         try {
-//            val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
             val response = entryPoint.getApiService().updateUser(login, password)
             if (!response.isSuccessful) {
                 throw ApiError(response.code(), response.message())
@@ -143,17 +142,17 @@ class AppAuth @Inject constructor(
         CoroutineScope(Dispatchers.Default).launch {
             try {
                 val pushToken = PushToken(token ?: Firebase.messaging.token.await())
-//                val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
                 entryPoint.getApiService().save(pushToken)
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
+
     @InstallIn(SingletonComponent::class)
     @EntryPoint
     interface AppAuthEntryPoint {
-        fun getApiService() : ApiService
+        fun getApiService(): ApiService
     }
 }
 
