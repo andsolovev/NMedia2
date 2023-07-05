@@ -2,6 +2,8 @@ HELP.md
 .gradle
 build/
 google-services.json
+temp/
+
 
 ### STS ###
 .apt_generated

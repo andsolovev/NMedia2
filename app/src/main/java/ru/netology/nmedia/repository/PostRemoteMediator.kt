@@ -22,13 +22,15 @@ class PostRemoteMediator(
         try {
             val response = when (loadType) {
                 LoadType.REFRESH -> {
-                    val id = postRemoteKeyDao.max()
-                    if (id == null) {
-                        service.getLatest(state.config.pageSize)
-                    } else service.getAfter(id, state.config.pageSize)
+                    service.getLatest(state.config.pageSize)
                 }
 
-                LoadType.PREPEND -> return MediatorResult.Success(true)
+                LoadType.PREPEND -> {
+                    val id = postRemoteKeyDao.max() ?: return MediatorResult.Success(
+                        endOfPaginationReached = false
+                    )
+                    service.getAfter(id, state.config.pageSize)
+                }
 
                 LoadType.APPEND -> {
                     val id = postRemoteKeyDao.min() ?: return MediatorResult.Success(false)
@@ -48,13 +50,28 @@ class PostRemoteMediator(
                 when (loadType) {
                     LoadType.REFRESH -> {
                         postRemoteKeyDao.insert(
-                            listOf(
+                            PostRemoteKeyEntity(
+                                PostRemoteKeyEntity.KeyType.BEFORE,
+                                body.last().id
+                            ),
+                        )
+                        postRemoteKeyDao.insert(
+                            PostRemoteKeyEntity(
+                                PostRemoteKeyEntity.KeyType.AFTER,
+                                body.first().id
+                            ),
+                        )
+                    }
+
+                    LoadType.PREPEND -> {
+                        if (body.isNotEmpty()) {
+                            postRemoteKeyDao.insert(
                                 PostRemoteKeyEntity(
                                     PostRemoteKeyEntity.KeyType.AFTER,
                                     body.first().id
-                                )
+                                ),
                             )
-                        )
+                        }
                     }
 
                     LoadType.APPEND -> {

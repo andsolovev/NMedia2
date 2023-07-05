@@ -1,20 +1,18 @@
 package ru.netology.nmedia.viewmodel
 
 import androidx.lifecycle.*
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import androidx.paging.map
+import androidx.paging.*
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
-import ru.netology.nmedia.dto.MediaUpload
-import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.model.FeedModelState
 import ru.netology.nmedia.model.PhotoModel
 import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
+import java.time.OffsetDateTime
 import javax.inject.Inject
 
 private val empty = Post(
@@ -34,18 +32,40 @@ class PostViewModel @Inject constructor(
     private val appAuth: AppAuth,
 ) : ViewModel() {
 
+    private val currentTime = OffsetDateTime.now().toEpochSecond()
     private val cached = repository
         .data
+        .map { pagingData ->
+            pagingData.insertSeparators(TerminalSeparatorType.FULLY_COMPLETE) { before, after ->
+                if (before != null && after != null) {
+                    if ((currentTime - before.published.toLong() < 86_400) && (currentTime - after.published.toLong() > 86_400) && (currentTime - after.published.toLong() < 172_800)) {
+                        Time(published = "Вчера")
+                    } else if ((currentTime - before.published.toLong() < 172_800) && (currentTime - after.published.toLong() > 172_800) && (currentTime - after.published.toLong() < 259_200)) {
+                        Time(published = "Два дня назад")
+                    } else if ((currentTime - before.published.toLong() > 172_800) && (currentTime - before.published.toLong() < 259_200) && (currentTime - after.published.toLong() > 259_200)) {
+                        Time(published = "Давно")
+                    } else null
+                } else null
+            }
+        }
+//        .map { pagingData ->
+//            pagingData.insertSeparators(TerminalSeparatorType.FULLY_COMPLETE) { before, _ ->
+//                if (before == null) Time(published = "Сегодня") else null
+//            }
+//        }
         .cachedIn(viewModelScope)
 
-
     @OptIn(ExperimentalCoroutinesApi::class)
-    val data: Flow<PagingData<Post>> = appAuth.data
+    val data: Flow<PagingData<FeedItem>> = appAuth.data
         .map { it?.id }
         .flatMapLatest { id ->
             cached.map { pagingData ->
                 pagingData.map { post ->
-                    post.copy(ownedByMe = post.authorId == id)
+                    if (post is Post) {
+                        post.copy(ownedByMe = post.authorId == id)
+                    } else {
+                        post
+                    }
                 }
             }
         }
