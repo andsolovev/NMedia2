@@ -38,7 +38,6 @@ enum class AttachmentType {
 
 data class TimeSeparator(
     val term: Term,
-//    override val published: String,
 ) : FeedItem {
     override val id: Long = term.ordinal.toLong()
     enum class Term {

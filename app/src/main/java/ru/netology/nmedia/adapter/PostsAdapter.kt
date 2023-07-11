@@ -82,12 +82,12 @@ class TimeViewHolder(
 
     fun bind(timeSeparator: TimeSeparator) {
         val resource = when (timeSeparator.term) {
-            TimeSeparator.Term.TODAY -> R.string.today
-            TimeSeparator.Term.YESTERDAY -> R.string.yesterday
-            TimeSeparator.Term.LONG_AGO -> R.string.long_ago
+            TimeSeparator.Term.TODAY -> "Today"
+            TimeSeparator.Term.YESTERDAY -> "Yesterday"
+            TimeSeparator.Term.LONG_AGO -> "Long ago"
         }
 
-        binding.timeSeparator.setText(resource)
+        binding.timeSeparator.text = resource
     }
 }
 
