@@ -48,8 +48,4 @@
     <string name="passwords_do_not_match">Пароли не совпадают!</string>
     <string name="you_have_successfully_registered">Вы успешно зарегистрированы!</string>
     <string name="avatar">avatar</string>
-    <string name="today">сегодня</string>
-    <string name="yesterday">вчера</string>
-    <string name="long_ago">давно</string>
-    <string name="ad_image">adImage</string>
 </resources>
