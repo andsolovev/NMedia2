@@ -1,7 +1,6 @@
 package ru.netology.nmedia.auth
 
 import android.content.Context
-import androidx.core.content.edit
 import com.google.android.gms.common.api.ApiException
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.messaging.ktx.messaging
@@ -38,7 +37,7 @@ class AppAuth @Inject constructor(
 ) {
 
     private val prefs = context.getSharedPreferences("auth", Context.MODE_PRIVATE)
-    private val _data: MutableStateFlow<Token?>
+    private val _data: MutableStateFlow<Token>
     private val TOKEN_KEY = "TOKEN_KEY"
     private val ID_KEY = "ID_KEY"
     val entryPoint = EntryPointAccessors.fromApplication(context, AppAuthEntryPoint::class.java)
@@ -47,31 +46,53 @@ class AppAuth @Inject constructor(
         val token = prefs.getString(TOKEN_KEY, null)
         val id = prefs.getLong(ID_KEY, 0L)
 
-        _data = if (token == null || !prefs.contains(ID_KEY)) {
-            prefs.edit { clear() }
-            MutableStateFlow(null)
+        if (id == 0L || token == null) {
+            _data = MutableStateFlow(Token())
+            with(prefs.edit()) {
+                clear()
+                apply()
+            }
         } else {
-            MutableStateFlow(Token(id, token))
+            _data = MutableStateFlow(Token(id, token))
         }
+
+//        _data = if (token == null || !prefs.contains(ID_KEY)) {
+//            prefs.edit { clear() }
+//            MutableStateFlow(null)
+//        } else {
+//            MutableStateFlow(Token(id, token))
+//        }
         sendPushToken()
     }
 
-    val data: StateFlow<Token?> = _data.asStateFlow()
+    val data: StateFlow<Token> = _data.asStateFlow()
 
     @Synchronized
-    fun setToken(id: Long, token: String) {
-        prefs.edit {
+//    fun setToken(id: Long, token: String) {
+//        prefs.edit {
+//            putLong(ID_KEY, id)
+//            putString(TOKEN_KEY, token)
+//        }
+//        _data.value = Token(id, token)
+//        sendPushToken()
+//    }
+    fun setToken(id: Long, token: String?) {
+        _data.value = Token(id, token)
+        with(prefs.edit()) {
             putLong(ID_KEY, id)
             putString(TOKEN_KEY, token)
+            apply()
         }
-        _data.value = Token(id, token)
         sendPushToken()
     }
+
 
     @Synchronized
     fun clearAuth() {
-        prefs.edit { clear() }
-        _data.value = null
+        with(prefs.edit()) {
+            clear()
+            apply()
+        }
         sendPushToken()
     }
 
@@ -157,6 +178,6 @@ class AppAuth @Inject constructor(
 }
 
 data class Token(
-    val id: Long,
-    val token: String,
+    val id: Long = 0,
+    val token: String? = null,
 )

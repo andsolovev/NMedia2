@@ -46,6 +46,8 @@ class PostRemoteMediator(
                 response.message(),
             )
 
+            if (body.isEmpty()) return MediatorResult.Success(false)
+
             appDb.withTransaction {
                 when (loadType) {
                     LoadType.REFRESH -> {

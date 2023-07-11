@@ -6,6 +6,9 @@ import androidx.room.PrimaryKey
 import ru.netology.nmedia.dto.Attachment
 import ru.netology.nmedia.dto.AttachmentType
 import ru.netology.nmedia.dto.Post
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 
 @Entity
 data class PostEntity(
@@ -15,7 +18,7 @@ data class PostEntity(
     val author: String,
     val authorAvatar: String,
     val content: String,
-    val published: String,
+    val published: Long,
     val likedByMe: Boolean,
     val likes: Int = 0,
     @Embedded
@@ -29,7 +32,7 @@ data class PostEntity(
             author,
             authorAvatar,
             content,
-            published,
+            OffsetDateTime.ofInstant(Instant.ofEpochSecond(published), ZoneId.systemDefault()),
             likedByMe,
             likes,
             attachment?.toDto()
@@ -43,7 +46,7 @@ data class PostEntity(
                 dto.author,
                 dto.authorAvatar,
                 dto.content,
-                dto.published,
+                dto.published.toEpochSecond(),
                 dto.likedByMe,
                 dto.likes,
                 AttachmentEntity.fromDto(dto.attachment),

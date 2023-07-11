@@ -1,8 +1,10 @@
 package ru.netology.nmedia.dto
 
+import java.time.OffsetDateTime
+
 sealed interface FeedItem{
     val id: Long
-    val published: String
+//    val published: String
 }
 
 data class Post(
@@ -11,7 +13,7 @@ data class Post(
     val author: String,
     val authorAvatar: String,
     val content: String,
-    override val published: String,
+    val published: OffsetDateTime,
     val likedByMe: Boolean,
     val likes: Int = 0,
     val attachment: Attachment?,
@@ -22,7 +24,6 @@ data class Ad(
     override val id: Long,
     val url: String,
     val image: String,
-    override val published: String = "999999999999",
 ) : FeedItem
 
 data class Attachment(
@@ -35,9 +36,16 @@ enum class AttachmentType {
     IMAGE
 }
 
-data class Time(
-    override val id: Long = 0,
-    override val published: String,
-) : FeedItem
+data class TimeSeparator(
+    val term: Term,
+//    override val published: String,
+) : FeedItem {
+    override val id: Long = term.ordinal.toLong()
+    enum class Term {
+        TODAY,
+        YESTERDAY,
+        LONG_AGO
+    }
+}
 
 

@@ -14,6 +14,9 @@ import ru.netology.nmedia.repository.PostRepository
 import ru.netology.nmedia.util.SingleLiveEvent
 import java.time.OffsetDateTime
 import javax.inject.Inject
+import kotlin.random.Random
+
+private val currentTime = OffsetDateTime.now()
 
 private val empty = Post(
     id = 0,
@@ -22,7 +25,7 @@ private val empty = Post(
     authorAvatar = "",
     likedByMe = false,
     likes = 0,
-    published = "",
+    published = currentTime,
     attachment = null
 )
 
@@ -32,43 +35,102 @@ class PostViewModel @Inject constructor(
     private val appAuth: AppAuth,
 ) : ViewModel() {
 
-    private val currentTime = OffsetDateTime.now().toEpochSecond()
-    private val cached = repository
+
+    private val yesterday = currentTime.minusDays(1)
+    private val longAgo = currentTime.minusDays(2)
+
+    private fun Post?.isToday() : Boolean = this?.published?.year == currentTime.year && published.dayOfYear == currentTime.dayOfYear
+    private fun Post?.isYesterday() : Boolean = this?.published?.year == yesterday.year && published.dayOfYear == yesterday.dayOfYear
+    private fun Post?.isLongAgo() : Boolean = this?.published?.year == longAgo.year && published.dayOfYear <= longAgo.dayOfYear
+
+
+
+
+    private val cached: Flow<PagingData<FeedItem>> = repository
         .data
         .map { pagingData ->
-            pagingData.insertSeparators(TerminalSeparatorType.FULLY_COMPLETE) { before, after ->
-                if (before != null && after != null) {
-                    if ((currentTime - before.published.toLong() < 86_400) && (currentTime - after.published.toLong() > 86_400) && (currentTime - after.published.toLong() < 172_800)) {
-                        Time(published = "Вчера")
-                    } else if ((currentTime - before.published.toLong() < 172_800) && (currentTime - after.published.toLong() > 172_800) && (currentTime - after.published.toLong() < 259_200)) {
-                        Time(published = "Два дня назад")
-                    } else if ((currentTime - before.published.toLong() > 172_800) && (currentTime - before.published.toLong() < 259_200) && (currentTime - after.published.toLong() > 259_200)) {
-                        Time(published = "Давно")
-                    } else null
-                } else null
-            }
+            pagingData.
+                insertSeparators(TerminalSeparatorType.SOURCE_COMPLETE) { before, after ->
+                    when {
+                        (before == null  || !before.isToday()) && after.isToday() -> {
+                            TimeSeparator(term = TimeSeparator.Term.TODAY)
+                        }
+                        (before == null  || before.isToday()) && after.isYesterday() -> {
+                            TimeSeparator(term = TimeSeparator.Term.YESTERDAY)
+                        }
+                        (before == null  || before.isYesterday()) && after.isLongAgo() -> {
+                            TimeSeparator(term = TimeSeparator.Term.LONG_AGO)
+                        }
+                        else -> {
+                            null
+                        }
+                    }
+                }
+                .insertSeparators(
+                generator = { before, after ->
+                    if (before?.id?.rem(5) != 0L) null else
+                        Ad(
+                            Random.nextLong(),
+                            "https://netology.ru",
+                            "figma.jpg"
+                        )
+                }
+            )
         }
+        .cachedIn(viewModelScope)
+
+//        .data
+//        .map { pagingData ->
+//            pagingData.insertSeparators(TerminalSeparatorType.SOURCE_COMPLETE) { before, after ->
+//                if ((before == null  || !before.isToday()) && before.isYesterday()) {
+//                    TimeSeparator(term = TimeSeparator.Term.TODAY)
+//                }
+
+
+//                if (before == null) {
+//                    Time(published = "Сегодня")
+//                }
+//
+//                if (before != null && after != null) {
+//                    if ((currentTime - before.published.toLong() < 86_400) && (currentTime - after.published.toLong() > 86_400) && (currentTime - after.published.toLong() < 172_800)) {
+//                        Time(published = "Вчера")
+//                    } else if ((currentTime - before.published.toLong() < 172_800) && (currentTime - after.published.toLong() > 172_800) && (currentTime - after.published.toLong() < 259_200)) {
+//                        Time(published = "Два дня назад")
+//                    } else if ((currentTime - before.published.toLong() > 172_800) && (currentTime - before.published.toLong() < 259_200) && (currentTime - after.published.toLong() > 259_200)) {
+//                        Time(published = "Давно")
+//                    } else null
+//                } else null
+//            }
+//        }
 //        .map { pagingData ->
 //            pagingData.insertSeparators(TerminalSeparatorType.FULLY_COMPLETE) { before, _ ->
 //                if (before == null) Time(published = "Сегодня") else null
 //            }
 //        }
-        .cachedIn(viewModelScope)
+//        .cachedIn(viewModelScope)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val data: Flow<PagingData<FeedItem>> = appAuth.data
-        .map { it?.id }
-        .flatMapLatest { id ->
-            cached.map { pagingData ->
-                pagingData.map { post ->
-                    if (post is Post) {
-                        post.copy(ownedByMe = post.authorId == id)
-                    } else {
-                        post
+        .flatMapLatest { (myId, _) ->
+            cached
+                .map { pagingData ->
+                    pagingData.map { item ->
+                        if (item !is Post) item else item.copy(ownedByMe = item.authorId == myId)
                     }
                 }
-            }
         }
+//        .map { it?.id }
+//        .flatMapLatest { id ->
+//            cached.map { pagingData ->
+//                pagingData.map { post ->
+//                    if (post is Post) {
+//                        post.copy(ownedByMe = post.authorId == id)
+//                    } else {
+//                        post
+//                    }
+//                }
+//            }
+//        }
 
     private val _dataState = MutableLiveData(FeedModelState())
     val dataState: LiveData<FeedModelState>

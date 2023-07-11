@@ -15,10 +15,7 @@ import ru.netology.nmedia.R
 import ru.netology.nmedia.databinding.CardAdBinding
 import ru.netology.nmedia.databinding.CardPostBinding
 import ru.netology.nmedia.databinding.ItemSeparatorTimeBinding
-import ru.netology.nmedia.dto.Ad
-import ru.netology.nmedia.dto.FeedItem
-import ru.netology.nmedia.dto.Post
-import ru.netology.nmedia.dto.Time
+import ru.netology.nmedia.dto.*
 import ru.netology.nmedia.view.load
 import java.util.*
 
@@ -37,7 +34,7 @@ class PostsAdapter(
         when (getItem(position)) {
             is Ad -> R.layout.card_ad
             is Post -> R.layout.card_post
-            is Time -> R.layout.item_separator_time
+            is TimeSeparator -> R.layout.item_separator_time
             null -> error("unknown view type")
         }
 
@@ -62,7 +59,7 @@ class PostsAdapter(
         when (val item = getItem(position)) {
             is Ad -> (holder as? AdViewHolder)?.bind(item)
             is Post -> (holder as? PostViewHolder)?.bind(item)
-            is Time -> (holder as? TimeViewHolder)?.bind(item)
+            is TimeSeparator -> (holder as? TimeViewHolder)?.bind(item)
             null -> error("unknown view type")
         }
     }
@@ -83,8 +80,14 @@ class TimeViewHolder(
     private val binding: ItemSeparatorTimeBinding
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(time: Time) {
-        binding.textTime.text = time.published
+    fun bind(timeSeparator: TimeSeparator) {
+        val resource = when (timeSeparator.term) {
+            TimeSeparator.Term.TODAY -> R.string.today
+            TimeSeparator.Term.YESTERDAY -> R.string.yesterday
+            TimeSeparator.Term.LONG_AGO -> R.string.long_ago
+        }
+
+        binding.timeSeparator.setText(resource)
     }
 }
 
@@ -96,7 +99,7 @@ class PostViewHolder(
     fun bind(post: Post) {
         binding.apply {
             author.text = post.author
-            published.text = getDateString(post.published.toLong())
+            published.text = getDateString(post.published.toEpochSecond())
             content.text = post.content
             like.isChecked = post.likedByMe
             like.text = "${post.likes}"

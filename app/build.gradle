@@ -20,6 +20,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
 
     kotlinOptions {
@@ -100,6 +101,7 @@ dependencies {
     implementation "com.google.android.gms:play-services-base:$play_services_base_version"
     implementation "com.google.dagger:hilt-android:$hilt_version"
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.2.2'
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
     kapt "androidx.lifecycle:lifecycle-compiler:$lifecycle_version"
     kapt "androidx.room:room-compiler:$room_version"

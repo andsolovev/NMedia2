@@ -1,5 +1,9 @@
 package ru.netology.nmedia.api
 
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +15,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -37,7 +44,7 @@ class ApiModule {
     ): OkHttpClient = OkHttpClient.Builder()
         .addInterceptor(logging)
         .addInterceptor { chain ->
-            appAuth.data.value?.token?.let {
+            appAuth.data.value.token?.let {
                 chain.request()
                     .newBuilder()
                     .addHeader("Authorization", it)
@@ -52,6 +59,26 @@ class ApiModule {
     fun provideRetrofit(
         okHttpClient: OkHttpClient
     ): Retrofit = Retrofit.Builder()
+        .addConverterFactory(
+            GsonConverterFactory.create(
+                GsonBuilder()
+                    .registerTypeAdapter(
+                        OffsetDateTime::class.java,
+                        object : TypeAdapter<OffsetDateTime>() {
+                            override fun write(out: JsonWriter, value: OffsetDateTime) {
+                                out.value(value.toEpochSecond())
+                            }
+
+                            override fun read(`in`: JsonReader): OffsetDateTime =
+                                OffsetDateTime.ofInstant(
+                                    Instant.ofEpochSecond(`in`.nextLong()),
+                                    ZoneId.systemDefault()
+                                )
+                        })
+                    .create()
+
+            )
+        )
         .baseUrl(BASE_URL)
         .client(okHttpClient)
         .addConverterFactory(GsonConverterFactory.create())
@@ -61,9 +88,9 @@ class ApiModule {
     @Provides
     fun provideApiService(
         retrofit: Retrofit
-    ) : ApiService = retrofit.create()
+    ): ApiService = retrofit.create()
 
-    }
+}
 
 
 
