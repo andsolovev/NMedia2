@@ -47,8 +47,8 @@
     <string name="passwords_do_not_match">Passwords do not match!</string>
     <string name="you_have_successfully_registered">You have successfully registered!</string>
     <string name="avatar">avatar</string>
-    <string name="adimage">adImage</string>
     <string name="today">today</string>
     <string name="yesterday">yesterday</string>
     <string name="long_ago">long ago</string>
+    <string name="ad_image">adImage</string>
 </resources>
