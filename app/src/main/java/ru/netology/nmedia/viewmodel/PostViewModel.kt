@@ -43,9 +43,6 @@ class PostViewModel @Inject constructor(
     private fun Post?.isYesterday() : Boolean = this?.published?.year == yesterday.year && published.dayOfYear == yesterday.dayOfYear
     private fun Post?.isLongAgo() : Boolean = this?.published?.year == longAgo.year && published.dayOfYear <= longAgo.dayOfYear
 
-
-
-
     private val cached: Flow<PagingData<FeedItem>> = repository
         .data
         .map { pagingData ->
@@ -79,36 +76,6 @@ class PostViewModel @Inject constructor(
         }
         .cachedIn(viewModelScope)
 
-//        .data
-//        .map { pagingData ->
-//            pagingData.insertSeparators(TerminalSeparatorType.SOURCE_COMPLETE) { before, after ->
-//                if ((before == null  || !before.isToday()) && before.isYesterday()) {
-//                    TimeSeparator(term = TimeSeparator.Term.TODAY)
-//                }
-
-
-//                if (before == null) {
-//                    Time(published = "Сегодня")
-//                }
-//
-//                if (before != null && after != null) {
-//                    if ((currentTime - before.published.toLong() < 86_400) && (currentTime - after.published.toLong() > 86_400) && (currentTime - after.published.toLong() < 172_800)) {
-//                        Time(published = "Вчера")
-//                    } else if ((currentTime - before.published.toLong() < 172_800) && (currentTime - after.published.toLong() > 172_800) && (currentTime - after.published.toLong() < 259_200)) {
-//                        Time(published = "Два дня назад")
-//                    } else if ((currentTime - before.published.toLong() > 172_800) && (currentTime - before.published.toLong() < 259_200) && (currentTime - after.published.toLong() > 259_200)) {
-//                        Time(published = "Давно")
-//                    } else null
-//                } else null
-//            }
-//        }
-//        .map { pagingData ->
-//            pagingData.insertSeparators(TerminalSeparatorType.FULLY_COMPLETE) { before, _ ->
-//                if (before == null) Time(published = "Сегодня") else null
-//            }
-//        }
-//        .cachedIn(viewModelScope)
-
     @OptIn(ExperimentalCoroutinesApi::class)
     val data: Flow<PagingData<FeedItem>> = appAuth.data
         .flatMapLatest { (myId, _) ->
@@ -119,18 +86,6 @@ class PostViewModel @Inject constructor(
                     }
                 }
         }
-//        .map { it?.id }
-//        .flatMapLatest { id ->
-//            cached.map { pagingData ->
-//                pagingData.map { post ->
-//                    if (post is Post) {
-//                        post.copy(ownedByMe = post.authorId == id)
-//                    } else {
-//                        post
-//                    }
-//                }
-//            }
-//        }
 
     private val _dataState = MutableLiveData(FeedModelState())
     val dataState: LiveData<FeedModelState>

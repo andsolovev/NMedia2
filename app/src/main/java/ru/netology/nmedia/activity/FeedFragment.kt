@@ -118,8 +118,6 @@ class FeedFragment : Fragment() {
         lifecycleScope.launchWhenCreated {
             adapter.loadStateFlow.collectLatest {
                 it.refresh is LoadState.Loading
-//                        || it.append is LoadState.Loading
-//                        || it.prepend is LoadState.Loading
             }
         }
 
@@ -178,10 +176,6 @@ class FeedFragment : Fragment() {
         authViewModel.data.observe(viewLifecycleOwner) {
             requireActivity().invalidateOptionsMenu()
         }
-
-
-//        val itemDecoration = CustomItemDecoration(binding.list.context.getDrawable(R.drawable.divider)!!)
-//        binding.list.addItemDecoration(itemDecoration)
 
         return binding.root
     }
